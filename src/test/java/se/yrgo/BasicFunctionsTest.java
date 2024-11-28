@@ -1,6 +1,10 @@
 package se.yrgo;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Duration;
@@ -8,7 +12,9 @@ import java.time.Duration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
 
 public class BasicFunctionsTest {
@@ -32,6 +38,15 @@ public class BasicFunctionsTest {
         driver.get("https://yrgo-amazing-todo-app.netlify.app/");
 
         assertEquals("Todo App", driver.getTitle());
+    }
+
+    @Test
+    void homePageShowNotDoneList() {
+        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(5));
+        driver.get("https://yrgo-amazing-todo-app.netlify.app/");
+
+        WebElement todoList = driver.findElement(By.className("todolist"));
+        assertNotEquals("todolist__done", todoList.getClass().getName());
     }
 }
 
