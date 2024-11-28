@@ -60,9 +60,9 @@ public class BasicFunctionsTest {
 
         final var wait = new WebDriverWait(driver, fiveSeconds);
 
-        final var edLink = Utils.find(driver, By.linkText("Done"));
-        wait.until(ExpectedConditions.elementToBeClickable(edLink));
-        edLink.click();
+        final var doneLink = Utils.find(driver, By.linkText("Done"));
+        wait.until(ExpectedConditions.elementToBeClickable(doneLink));
+        doneLink.click();
 
         wait.until(ExpectedConditions.urlContains("/done"));
         assertTrue(driver.getCurrentUrl().contains("/done"));
@@ -97,6 +97,40 @@ public class BasicFunctionsTest {
         WebElement checkbox = lastTodo.findElement(By.cssSelector("input[type='checkbox']"));
         assertFalse(checkbox.isSelected());
     }
+
+    @Test
+    void markAsDoneThenMoveToDonePage() {
+        driver.manage().timeouts().implicitlyWait(fiveSeconds);
+        driver.get("https://yrgo-amazing-todo-app.netlify.app/");
+
+        final var wait = new WebDriverWait(driver, fiveSeconds);
+
+        WebElement input = driver.findElement(By.cssSelector("input[type='text']"));
+        WebElement submit = driver.findElement(By.cssSelector("input[type='submit']"));
+
+        String newToDotext = "Test to do";
+        input.sendKeys(newToDotext);
+        wait.until(CustomConditions.elementHasBeenClicked(submit));
+
+        List<WebElement> todos = driver.findElements(By.cssSelector(".todolist li"));
+        WebElement lastTodo = todos.get(todos.size() - 1);
+        WebElement checkbox = lastTodo.findElement(By.cssSelector("input[type='checkbox']"));
+        checkbox.click();
+
+        final var doneLink = Utils.find(driver, By.linkText("Done"));
+        wait.until(d -> {
+            doneLink.click();
+            return doneLink;
+        });
+
+        List<WebElement> doneTodos = driver.findElements(By.cssSelector(".todolist li"));
+        boolean isTodoInDoneLIst = doneTodos.stream()
+                .map(todo -> todo.getText())
+                .anyMatch(text -> text.equals(newToDotext));
+
+        assertTrue(isTodoInDoneLIst);
+    }
+
 }
 
 /**
