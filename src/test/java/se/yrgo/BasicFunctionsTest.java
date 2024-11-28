@@ -74,10 +74,32 @@ public class BasicFunctionsTest {
             assertTrue(checkbox.isSelected());
         }
     }
+
+    @Test
+    void checkNewTodoWithUncheckedBox() {
+        driver.manage().timeouts().implicitlyWait(fiveSeconds);
+        driver.get("https://yrgo-amazing-todo-app.netlify.app/");
+
+        final var wait = new WebDriverWait(driver, fiveSeconds);
+
+        WebElement input = driver.findElement(By.cssSelector("input[type='text']"));
+        WebElement submit = driver.findElement(By.cssSelector("input[type='submit']"));
+
+        String newToDotext = "Test to do";
+        input.sendKeys(newToDotext);
+        wait.until(CustomConditions.elementHasBeenClicked(submit));
+
+        List<WebElement> todos = driver.findElements(By.cssSelector(".todolist li"));
+        WebElement lastTodo = todos.get(todos.size() - 1);
+        String lastTodoText = lastTodo.getText();
+        assertEquals(newToDotext, lastTodoText);
+
+        WebElement checkbox = lastTodo.findElement(By.cssSelector("input[type='checkbox']"));
+        assertFalse(checkbox.isSelected());
+    }
 }
 
 /**
- * Only todos marked as "done" should be displayed on the "done" page.
  * You can add a new todo, which will initially be marked as "not done."
  * A todo can be marked as "done" using a checkbox, and it will then move to the
  * "done" page.
