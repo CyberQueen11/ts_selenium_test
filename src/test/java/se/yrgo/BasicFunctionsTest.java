@@ -35,13 +35,14 @@ public class BasicFunctionsTest {
     }
 }
 
-/*
- * Enbart todos som är "not done" skall visas på första sidan.
- * Enbart todos som är "done" skall visas på sidan "done".
- * Man kan lägga till en ny todo. Den är då inte markerad som "done".
- * Man kan markera en todo som "done" genom checkbox. Hamnar då på sidan "done".
- * En todo som är "done" kan göras till "not done" genom checkbox.
- * En todo som är "done" kan raderas helt genom en knapp. Man måste bekräfta
- * borttagning.
- * Laddar man om sidan skall webbsidans tillstånd bibehållas.
+/**
+ * Only todos marked as "not done" should be displayed on the homepage.
+ * Only todos marked as "done" should be displayed on the "done" page.
+ * You can add a new todo, which will initially be marked as "not done."
+ * A todo can be marked as "done" using a checkbox, and it will then move to the
+ * "done" page.
+ * A todo marked as "done" can be changed back to "not done" using a checkbox.
+ * A todo marked as "done" can be permanently deleted using a button. Deletion
+ * must be confirmed.
+ * When the page is reloaded, the state of the website should be preserved.
  */
