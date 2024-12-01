@@ -24,6 +24,10 @@ public class BasicFunctionsTest {
 
     WebDriver driver;
     Duration fiveSeconds = Duration.ofSeconds(5);
+    String checkboxSelector = "input[type='checkbox']";
+    String inputField = "input[type='text']";
+    String submitBtn = "input[type='submit']";
+    String listSelector = ".todolist li";
 
     @BeforeEach
     void setupTest() {
@@ -35,31 +39,30 @@ public class BasicFunctionsTest {
         driver.quit();
     }
 
+    void goToLink() {
+        driver.manage().timeouts().implicitlyWait(fiveSeconds);
+        driver.get("https://yrgo-amazing-todo-app.netlify.app/");
+    }
+
     @Test
     void checkTitle() {
-        driver.manage().timeouts().implicitlyWait(fiveSeconds);
-
-        driver.get("https://yrgo-amazing-todo-app.netlify.app/");
-
+        goToLink();
         assertEquals("Todo App", driver.getTitle());
     }
 
     @Test
     void homePageShowNotDoneList() {
-        driver.manage().timeouts().implicitlyWait(fiveSeconds);
-        driver.get("https://yrgo-amazing-todo-app.netlify.app/");
-
+        goToLink();
         WebElement todoList = driver.findElement(By.className("todolist"));
         assertNotEquals("todolist__done", todoList.getClass().getName());
     }
 
     @Test
     void donePageShowsDoneList() {
-        driver.manage().timeouts().implicitlyWait(fiveSeconds);
-        driver.get("https://yrgo-amazing-todo-app.netlify.app/");
-
+        goToLink();
         final var wait = new WebDriverWait(driver, fiveSeconds);
 
+        // Click Done link
         final var doneLink = Utils.find(driver, By.linkText("Done"));
         wait.until(ExpectedConditions.elementToBeClickable(doneLink));
         doneLink.click();
@@ -67,63 +70,67 @@ public class BasicFunctionsTest {
         wait.until(ExpectedConditions.urlContains("/done"));
         assertTrue(driver.getCurrentUrl().contains("/done"));
 
-        List<WebElement> todos = driver.findElements(By.cssSelector(".todolist li"));
+        List<WebElement> todos = driver.findElements(By.cssSelector(listSelector));
 
         for (WebElement todo : todos) {
-            WebElement checkbox = todo.findElement(By.cssSelector("input[type='checkbox']"));
+            WebElement checkbox = todo.findElement(By.cssSelector(checkboxSelector));
             assertTrue(checkbox.isSelected());
         }
     }
 
     @Test
     void checkNewTodoWithUncheckedBox() {
-        driver.manage().timeouts().implicitlyWait(fiveSeconds);
-        driver.get("https://yrgo-amazing-todo-app.netlify.app/");
-
+        goToLink();
         final var wait = new WebDriverWait(driver, fiveSeconds);
 
-        WebElement input = driver.findElement(By.cssSelector("input[type='text']"));
-        WebElement submit = driver.findElement(By.cssSelector("input[type='submit']"));
+        WebElement input = driver.findElement(By.cssSelector(inputField));
+        WebElement submit = driver.findElement(By.cssSelector(submitBtn));
 
+        // Insert new todo
         String newToDotext = "Test to do";
         input.sendKeys(newToDotext);
         wait.until(CustomConditions.elementHasBeenClicked(submit));
 
-        List<WebElement> todos = driver.findElements(By.cssSelector(".todolist li"));
+        // Find new todo
+        List<WebElement> todos = driver.findElements(By.cssSelector(listSelector));
         WebElement lastTodo = todos.get(todos.size() - 1);
         String lastTodoText = lastTodo.getText();
+
         assertEquals(newToDotext, lastTodoText);
 
-        WebElement checkbox = lastTodo.findElement(By.cssSelector("input[type='checkbox']"));
+        // Check that box is unchecked
+        WebElement checkbox = lastTodo.findElement(By.cssSelector(checkboxSelector));
         assertFalse(checkbox.isSelected());
     }
 
     @Test
     void markAsDoneThenMoveToDonePage() {
-        driver.manage().timeouts().implicitlyWait(fiveSeconds);
-        driver.get("https://yrgo-amazing-todo-app.netlify.app/");
-
+        goToLink();
         final var wait = new WebDriverWait(driver, fiveSeconds);
 
-        WebElement input = driver.findElement(By.cssSelector("input[type='text']"));
-        WebElement submit = driver.findElement(By.cssSelector("input[type='submit']"));
+        WebElement input = driver.findElement(By.cssSelector(inputField));
+        WebElement submit = driver.findElement(By.cssSelector(submitBtn));
 
+        // Insert new todo
         String newToDotext = "Test to do";
         input.sendKeys(newToDotext);
         wait.until(CustomConditions.elementHasBeenClicked(submit));
 
-        List<WebElement> todos = driver.findElements(By.cssSelector(".todolist li"));
+        // Check the new todo box
+        List<WebElement> todos = driver.findElements(By.cssSelector(listSelector));
         WebElement lastTodo = todos.get(todos.size() - 1);
-        WebElement checkbox = lastTodo.findElement(By.cssSelector("input[type='checkbox']"));
-        checkbox.click();
+        WebElement checkbox = lastTodo.findElement(By.cssSelector(checkboxSelector));
+        wait.until(CustomConditions.elementHasBeenClicked(checkbox));
 
+        // Click Done link
         final var doneLink = Utils.find(driver, By.linkText("Done"));
         wait.until(d -> {
             doneLink.click();
             return doneLink;
         });
 
-        List<WebElement> doneTodos = driver.findElements(By.cssSelector(".todolist li"));
+        // Check done todo list
+        List<WebElement> doneTodos = driver.findElements(By.cssSelector(listSelector));
         boolean isTodoInDoneLIst = doneTodos.stream()
                 .map(todo -> todo.getText())
                 .anyMatch(text -> text.equals(newToDotext));
@@ -131,12 +138,57 @@ public class BasicFunctionsTest {
         assertTrue(isTodoInDoneLIst);
     }
 
+    @Test
+    void doneTodoCanBeUnmarked() {
+        goToLink();
+        final var wait = new WebDriverWait(driver, fiveSeconds);
+
+        WebElement input = driver.findElement(By.cssSelector(inputField));
+        WebElement submit = driver.findElement(By.cssSelector(submitBtn));
+
+        // Insert new todo
+        String newTodotext = "Test to do";
+        input.sendKeys(newTodotext);
+        wait.until(CustomConditions.elementHasBeenClicked(submit));
+
+        // Find and check new todo box
+        List<WebElement> todos = driver.findElements(By.cssSelector(listSelector));
+        WebElement lastTodo = todos.get(todos.size() - 1);
+        WebElement checkbox = lastTodo.findElement(By.cssSelector(checkboxSelector));
+        wait.until(CustomConditions.elementHasBeenClicked(checkbox));
+
+        // Click Done link
+        final var doneLink = Utils.find(driver, By.linkText("Done"));
+        wait.until(d -> {
+            doneLink.click();
+            return doneLink;
+        });
+
+        // Find and uncheck new done todo
+        List<WebElement> doneTodos = driver.findElements(By.cssSelector(listSelector));
+        for (WebElement doneTodo : doneTodos) {
+            if (doneTodo.getText().equals(newTodotext)) {
+                checkbox = doneTodo.findElement(By.cssSelector(checkboxSelector));
+                wait.until(CustomConditions.elementHasBeenClicked(checkbox));
+                break;
+            }
+        }
+
+        // Click Todo link
+        final var todoLink = Utils.find(driver, By.linkText("Todo"));
+        wait.until(d -> {
+            todoLink.click();
+            return todoLink;
+        });
+
+        checkbox = lastTodo.findElement(By.cssSelector(checkboxSelector));
+        assertFalse(checkbox.isSelected());
+
+    }
+
 }
 
 /**
- * You can add a new todo, which will initially be marked as "not done."
- * A todo can be marked as "done" using a checkbox, and it will then move to the
- * "done" page.
  * A todo marked as "done" can be changed back to "not done" using a checkbox.
  * A todo marked as "done" can be permanently deleted using a button. Deletion
  * must be confirmed.
