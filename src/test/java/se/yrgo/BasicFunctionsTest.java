@@ -241,10 +241,48 @@ public class BasicFunctionsTest {
 
     }
 
+    @Test
+    void stateIsPreservedAfterReload() {
+        goToLink();
+        final var wait = new WebDriverWait(driver, fiveSeconds);
+
+        WebElement input = driver.findElement(By.cssSelector(inputField));
+        WebElement submit = driver.findElement(By.cssSelector(submitBtn));
+
+        // Insert new todo
+        String newTodoText = "Test todo";
+        input.sendKeys(newTodoText);
+        wait.until(CustomConditions.elementHasBeenClicked(submit));
+
+        // Find and check new todo
+        List<WebElement> todos = driver.findElements(By.cssSelector(listSelector));
+        WebElement lastTodo = todos.get(todos.size() - 1);
+        WebElement checkbox = lastTodo.findElement(By.cssSelector(checkboxSelector));
+        wait.until(CustomConditions.elementHasBeenClicked(checkbox));
+
+        // Click Done link
+        final var doneLink = Utils.find(driver, By.linkText("Done"));
+        wait.until(d -> {
+            doneLink.click();
+            return doneLink;
+        });
+        wait.until(d -> d.getCurrentUrl().contains("/done"));
+
+        driver.navigate().refresh();
+
+        todos = driver.findElements(By.cssSelector(listSelector));
+        lastTodo = todos.get(todos.size() - 1);
+        checkbox = lastTodo.findElement(By.cssSelector(checkboxSelector));
+        // check that the todo is still present in the list
+        boolean isTodoPresent = todos.stream()
+                .anyMatch(todo -> todo.getText().equals(newTodoText));
+
+        assertTrue(isTodoPresent);
+        assertTrue(checkbox.isSelected());
+    }
+
 }
 
 /**
- * A todo marked as "done" can be permanently deleted using a button. Deletion
- * must be confirmed.
  * When the page is reloaded, the state of the website should be preserved.
  */
