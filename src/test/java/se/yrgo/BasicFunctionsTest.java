@@ -268,12 +268,13 @@ public class BasicFunctionsTest {
         });
         wait.until(d -> d.getCurrentUrl().contains("/done"));
 
+        // Refresh
         driver.navigate().refresh();
 
+        // Fetch done todo list and check state
         todos = driver.findElements(By.cssSelector(listSelector));
         lastTodo = todos.get(todos.size() - 1);
         checkbox = lastTodo.findElement(By.cssSelector(checkboxSelector));
-        // check that the todo is still present in the list
         boolean isTodoPresent = todos.stream()
                 .anyMatch(todo -> todo.getText().equals(newTodoText));
 
