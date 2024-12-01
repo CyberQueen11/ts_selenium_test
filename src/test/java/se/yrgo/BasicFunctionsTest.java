@@ -13,6 +13,7 @@ import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.openqa.selenium.Alert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -128,6 +129,7 @@ public class BasicFunctionsTest {
             doneLink.click();
             return doneLink;
         });
+        wait.until(d -> d.getCurrentUrl().contains("/done"));
 
         // Check done todo list
         List<WebElement> doneTodos = driver.findElements(By.cssSelector(listSelector));
@@ -163,6 +165,7 @@ public class BasicFunctionsTest {
             doneLink.click();
             return doneLink;
         });
+        wait.until(d -> d.getCurrentUrl().contains("/done"));
 
         // Find and uncheck new done todo
         List<WebElement> doneTodos = driver.findElements(By.cssSelector(listSelector));
@@ -180,16 +183,67 @@ public class BasicFunctionsTest {
             todoLink.click();
             return todoLink;
         });
+        wait.until(d -> d.getCurrentUrl().contains("/"));
 
+        todos = driver.findElements(By.cssSelector(listSelector));
+        lastTodo = todos.get(todos.size() - 1);
         checkbox = lastTodo.findElement(By.cssSelector(checkboxSelector));
         assertFalse(checkbox.isSelected());
+
+    }
+
+    @Test
+    void deleteDoneTodoAndConfirmDeletion() {
+        goToLink();
+        final var wait = new WebDriverWait(driver, fiveSeconds);
+
+        WebElement input = driver.findElement(By.cssSelector(inputField));
+        WebElement submit = driver.findElement(By.cssSelector(submitBtn));
+
+        // Insert new todo
+        String newTodoText = "Test todo";
+        input.sendKeys(newTodoText);
+        wait.until(CustomConditions.elementHasBeenClicked(submit));
+
+        // Find and check new todo
+        List<WebElement> todos = driver.findElements(By.cssSelector(listSelector));
+        WebElement lastTodo = todos.get(todos.size() - 1);
+        WebElement checkbox = lastTodo.findElement(By.cssSelector(checkboxSelector));
+        wait.until(CustomConditions.elementHasBeenClicked(checkbox));
+
+        // Click Done link
+        final var doneLink = Utils.find(driver, By.linkText("Done"));
+        wait.until(d -> {
+            doneLink.click();
+            return doneLink;
+        });
+        wait.until(d -> d.getCurrentUrl().contains("/done"));
+
+        // Find the done todo and delete it
+        List<WebElement> doneTodos = driver.findElements(By.cssSelector(listSelector));
+        for (WebElement doneTodo : doneTodos) {
+            if (doneTodo.getText().equals(newTodoText)) {
+                WebElement deleteBtn = doneTodo.findElement(By.className("todo__done__remove"));
+                wait.until(CustomConditions.elementHasBeenClicked(deleteBtn));
+
+                // Handle confirmation
+                Alert confirmationDialog = wait.until(ExpectedConditions.alertIsPresent());
+                confirmationDialog.accept();
+                break;
+            }
+        }
+
+        doneTodos = driver.findElements(By.cssSelector(listSelector));
+        boolean isTodoStillPresent = doneTodos.stream()
+                .anyMatch(todo -> todo.getText().equals(newTodoText));
+
+        assertFalse(isTodoStillPresent);
 
     }
 
 }
 
 /**
- * A todo marked as "done" can be changed back to "not done" using a checkbox.
  * A todo marked as "done" can be permanently deleted using a button. Deletion
  * must be confirmed.
  * When the page is reloaded, the state of the website should be preserved.
