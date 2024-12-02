@@ -8,6 +8,7 @@ import java.util.List;
 import org.junit.jupiter.api.*;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -24,9 +25,7 @@ public class BasicFunctionsTest {
 
     @BeforeEach
     void setupTest() {
-        FirefoxOptions options = new FirefoxOptions();
-        options.setAcceptInsecureCerts(true);
-        driver = new FirefoxDriver(options);
+        driver = new ChromeDriver();
         homePage = new HomePage(driver);
         donePage = new DonePage(driver);
     }
@@ -42,32 +41,33 @@ public class BasicFunctionsTest {
         assertEquals("Todo App", driver.getTitle());
     }
 
-    /*
-     * @Test
-     * void homePageShowsNotDoneList() {
-     * driver.manage().window().maximize();
-     * // Inject test data
-     * ((JavascriptExecutor) driver)
-     * .executeScript("localStorage.setItem('todolist', '[{\"name\":\"Item 4\",\"done\":false}]');"
-     * );
-     * driver.navigate().refresh();
-     * 
-     * List<WebElement> todos = homePage.getTodoList();
-     * assertEquals(1, todos.size());
-     * assertEquals("Todo 1", todos.get(0).getText());
-     * }
-     */
+    @Test
+    void homePageShowsNotDoneList() {
+        homePage.open();
+        driver.manage().window().maximize();
+
+        // Inject test data
+        ((JavascriptExecutor) driver)
+                .executeScript("localStorage.setItem('todolist', '[{\"name\":\"Item 4\",\"done\":false}]');");
+        driver.navigate().refresh();
+
+        List<WebElement> todos = homePage.getTodoList();
+        assertEquals(1, todos.size());
+        assertEquals("Item 4", todos.get(0).getText());
+    }
 
     @Test
     void donePageShowsDoneList() {
         homePage.open();
-        Utils.clickWhenReady(driver, By.linkText("Done"));
-        assertTrue(driver.getCurrentUrl().contains("/done"));
+        Utils.clickDoneWhenReady(driver, By.linkText("Done"));
 
-        donePage.getDoneTodos().forEach(todo -> {
-            WebElement checkbox = donePage.getCheckboxForDoneTodo(todo);
-            assertTrue(checkbox.isSelected());
-        });
+        ((JavascriptExecutor) driver)
+                .executeScript("localStorage.setItem('todolist', '[{\"name\":\"Todo 1\",\"done\":true}]');");
+        driver.navigate().refresh();
+
+        List<WebElement> todos = donePage.getDoneTodos();
+        assertEquals(1, todos.size());
+        assertEquals("Todo 1", todos.get(0).getText());
     }
 
     @Test
@@ -101,7 +101,7 @@ public class BasicFunctionsTest {
         WebElement checkbox = homePage.getCheckboxForTodo(lastTodo);
         Utils.clickWhenReady(driver, checkbox);
 
-        Utils.clickWhenReady(driver, By.linkText("Done"));
+        Utils.clickDoneWhenReady(driver, By.linkText("Done"));
         assertTrue(driver.getCurrentUrl().contains("/done"));
 
         donePage.getDoneTodos().forEach(todo -> {
@@ -126,7 +126,7 @@ public class BasicFunctionsTest {
         WebElement checkbox = homePage.getCheckboxForTodo(lastTodo);
         Utils.clickWhenReady(driver, checkbox);
 
-        Utils.clickWhenReady(driver, By.linkText("Done"));
+        Utils.clickDoneWhenReady(driver, By.linkText("Done"));
 
         List<WebElement> doneTodos = donePage.getDoneTodos();
         doneTodos.stream()
@@ -159,7 +159,7 @@ public class BasicFunctionsTest {
         WebElement checkbox = homePage.getCheckboxForTodo(lastTodo);
         Utils.clickWhenReady(driver, checkbox);
 
-        Utils.clickWhenReady(driver, By.linkText("Done"));
+        Utils.clickDoneWhenReady(driver, By.linkText("Done"));
         driver.navigate().refresh();
 
         WebElement reloadedTodo = homePage.getTodoElement(newTodoText);

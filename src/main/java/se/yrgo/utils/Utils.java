@@ -12,10 +12,10 @@ public class Utils {
 
     private static final Duration TIMEOUT = Duration.ofSeconds(5);
 
-    public static void clickWhenReady(WebDriver driver, By locator) {
+    public static void clickDoneWhenReady(WebDriver driver, By locator) {
         WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
         wait.until(ExpectedConditions.elementToBeClickable(locator)).click();
-
+        wait.until(ExpectedConditions.urlToBe(driver.getCurrentUrl() + "done"));
     }
 
     public static void clickWhenReady(WebDriver driver, WebElement element) {
